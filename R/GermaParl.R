@@ -2,14 +2,15 @@
 #' 
 #' \emph{GermaParl} is  a corpus of parliamentary debates in the German
 #' Bundestag. The package offers a convenient dissemination mechanism for the
-#' \emph{GermaParl} corpus.  The corpus has been linguistically annotated and
+#' \emph{GermaParl} corpus. The corpus has been linguistically annotated and
 #' indexed using the data format of the \emph{Corpus Workbench} (CWB). To make
 #' full use if this data format, working with \emph{GermaParl} in combination
-#' with the \emph{polmineR} package is recommended. After installation, only a
-#' small sample corpus will be included in the package ("GERMAPARLMINI"). To
-#' download the full corpus from the open science repository \emph{Zenodo}, use
-#' the \code{germaparl_download_corpus} function. The package offers further
-#' functionality to augment the corpus (see the the examples section below).
+#' with the \emph{polmineR} package is recommended. 
+#' 
+#' The GermaParl package initially only includes  a subset of the GermaParl
+#' corpus which serves as a sample corpus ("GERMAPARLMINI"). To download the
+#' full corpus from the open science repository \emph{Zenodo}, use the
+#' \code{germaparl_download_corpus} function.
 #' 
 #' The \emph{GermaParl} R package and the \emph{GermaParl} corpus are two
 #' different pieces of research data: The package offers a mechanism to ship,
@@ -32,13 +33,13 @@
 #' @rdname GermaParl-package
 #' @name GermaParl-package
 #' @examples 
-#' # This example uses the GERMAPARLSAMPLE corpus rather than the full GERMAPARL 
-#' # so that the time consumed for testing the code is not excessive. To apply
+#' # This example uses the GERMAPARLSAMPLE corpus rather than the full GERMAPARL
+#' # corpus in order to reduce the time required for testing the code. To apply
 #' # everything on GERMAPARL rather than GERMAPARLSAMPLE, set variable 'samplemode' 
 #' # to FALSE, or simply omit argument 'sample'.
 #' 
 #' samplemode <- TRUE
-#' corpus_id <- "GERMAPARLSAMPLE" # to get/amend full corpus: corpus_id <- "GERMAPARL"
+#' corpus_id <- "GERMAPARLSAMPLE" # to get full corpus: corpus_id <- "GERMAPARL"
 #' 
 #' # This example assumes that the directories used by the CWB do not yet exist, so
 #' # temporary directories are created.
@@ -54,49 +55,9 @@
 #' )
 #' 
 #' # Check availability of the corpus
-#' library(polmineR)
-#' corpus() # should include downloaded GERMAPARL(SAMPLE) corpus
-#' count("GERMAPARLSAMPLE", "Daten") # an arbitrary test
 #' germaparl_is_installed(sample = samplemode) # TRUE now
 #' germaparl_get_version(sample = samplemode) # get version of indexed corpus
 #' germaparl_get_doi(sample = samplemode) # get 'document object identifier' (DOI) of GERMAPARL corpus
-#' 
-#' # Encode structural attribute 'speech'
-#' germaparl_encode_speeches(
-#'   registry_dir = cwb_dirs[["registry_dir"]],
-#'   corpus_dir = cwb_dirs[["corpus_dir"]],
-#'   sample = samplemode
-#' )
-#' 
-#' # Check whether the new attribute is available 
-#' s_attributes(corpus_id)
-#' values <- s_attributes(corpus_id, "speech")
-#' sizes <- size(corpus_id, s_attribute = "speech")
-#' dtm <- as.DocumentTermMatrix(corpus_id, p_attribute = "word", s_attribute = "speech")
-#' 
-#' # Download topic model (k = 250)
-#' germaparl_download_lda(
-#'   k = 30, # use k = 250 for full GERMAPARL corpus
-#'   data_dir = file.path(cwb_dirs[["corpus_dir"]], tolower(corpus_id)),
-#'   sample = samplemode
-#' )
-#' lda <- germaparl_load_topicmodel(k = 30L, registry_dir = registry_tmp, sample = samplemode)
-#' lda_terms <- topicmodels::terms(lda, 10)
-#' 
-#' # Encode topic model classification of speeches
-#' germaparl_encode_lda_topics(
-#'   k = 30, # use k = 250 for full GERMAPARL corpus
-#'   n = 3,
-#'   registry_dir = cwb_dirs[["registry_dir"]],
-#'   data_dir = file.path(cwb_dirs[["corpus_dir"]], tolower(corpus_id)),
-#'   sample = samplemode
-#' )
-#' 
-#' # Check whether the newly encoded attribute 'topics' is available
-#' s_attributes(corpus_id)
-#' sc <- corpus(corpus_id) %>% subset(grep("\\|18\\|", topics))
-#' b <- as.speeches(sc, s_attribute_name = "speaker")
-#' length(b)
 "_PACKAGE"
 
 
@@ -111,8 +72,6 @@
 #'   \link{GermaParl} package for an example.
 #' @return \code{TRUE} if the corpus has been installed, and \code{FALSE} if not.
 #' @export germaparl_is_installed
-#' @examples 
-#' germaparl_is_installed() # to check whether GERMAPARL has been downloaded
 germaparl_is_installed <- function(registry_dir = Sys.getenv("CORPUS_REGISTRY"), sample = FALSE){
   corpus_id <- if (isFALSE(sample)) "GERMAPARL" else "GERMAPARLSAMPLE"
   tolower(corpus_id) %in% list.files(registry_dir)
@@ -171,37 +130,6 @@ germaparl_get_version <- function(registry_dir = Sys.getenv("CORPUS_REGISTRY"), 
   as.numeric_version(version)
 }
 
-#' Unload and relaod GERMAPARL corpus
-#'
-#' After adding attributes to the corpus, new annotations will not be available
-#' until the internal C representation of the corpus is deleted and reloaded.
-#' The function is used internally by functions adding s-attributes to the
-#' corpus. It is exported and documented as a matter of transparency.
-#'
-#' The function ensures that a modified/updated registry file will be copied
-#' from the system registry directory (directory where registry files are stored
-#' permanently) to the temporary registry directory used by polmineR.
-#'
-#' @param session_registry_dir The temporary session registry directory created
-#'   and used by the polmineR package.
-#' @param system_registry_dir The non-temporary system registry directory.
-#' @param sample A \code{logical} value, if \code{TRUE}, the GERMAPARLSAMPLE
-#'   corpus will be used. The default is \code{FALSE}, and the GERMAPARL corpus
-#'   will be refreshed.
-#' @export germaparl_refresh
-germaparl_refresh <- function(session_registry_dir = polmineR::registry(), system_registry_dir = getOption("polmineR.corpus_registry"), sample = FALSE){
-  corpus_id <- if (isFALSE(sample)) "GERMAPARL" else "GERMAPARLSAMPLE"
-  file.copy(
-    from = file.path(system_registry_dir, tolower(corpus_id)),
-    to = file.path(session_registry_dir, tolower(corpus_id)),
-    overwrite = TRUE
-  )
-  # RcppCWB_cl_delete_corpus will crash if the corpus has not been used before (missing C representation of
-  # the corpus). A minimal corpus query - RcppCWB::cl_cpos2id() - is necessary to avoid the crash
-  RcppCWB::cl_cpos2id(corpus = corpus_id, p_attribute = "word", cpos = 0L, registry = session_registry_dir)
-  RcppCWB::cl_delete_corpus(corpus_id, registry = session_registry_dir)
-  polmineR::registry_reset()
-}
 
 
 #' LDA Tuning Results

@@ -3,26 +3,17 @@
 \name{germaparl_download_lda}
 \alias{germaparl_download_lda}
 \alias{topics}
-\alias{germaparl_encode_lda_topics}
-\alias{germaparl_load_topicmodel}
+\alias{germaparl_load_lda}
 \title{Use topicmodels prepared for GermaParl.}
 \usage{
 germaparl_download_lda(
   k = c(100L, 150L, 175L, 200L, 225L, 250L, 275L, 300L, 350L, 400L, 450L),
-  doi = "https://doi.org/10.5281/zenodo.3742113",
+  doi = "10.5281/zenodo.3742113",
   data_dir,
   sample = FALSE
 )
 
-germaparl_encode_lda_topics(
-  k = 200,
-  n = 5,
-  registry_dir = cwb_registry_dir(),
-  data_dir,
-  sample = FALSE
-)
-
-germaparl_load_topicmodel(
+germaparl_load_lda(
   k,
   registry_dir = cwbtools::cwb_registry_dir(),
   verbose = TRUE,
@@ -34,7 +25,7 @@ germaparl_load_topicmodel(
 the topicmodel. Multiple values can be provided to download several topic
 models at once.}
 
-\item{doi}{The DOI of GermaParl at Zenodo (stated as URL).}
+\item{doi}{The DOI of GermaParl at Zenodo.}
 
 \item{data_dir}{The data directory with the binary files of the GERMAPARL
 corpus. If missing, the directory will be guessed using the function
@@ -42,8 +33,6 @@ corpus. If missing, the directory will be guessed using the function
 
 \item{sample}{A \code{logical} value, if \code{TRUE}, use GERMAPARLSAMPLE
 corpus rather than GERMAPARL.}
-
-\item{n}{Number of topics to write to corpus}
 
 \item{registry_dir}{The registry directory where the registry file for GERMAPARL
 is located.}
@@ -61,27 +50,37 @@ The functions \code{germaparl_download_lda} and
 \description{
 A set of LDA topicmodels is part of the Zenodo release of GermaParl (k
 between 100 and 450). These topic models can be downloaded using
-\code{germaparl_download_lda} and loaded using \code{germaparl_load_topicmodel}.
-Use \code{germaparl_encode_lda_topics} to add a structural attribute with
-topic information for speeches to the encoded corpus.
+\code{germaparl_download_lda} and loaded using \code{germaparl_load_lda}.
 }
 \details{
 The function \code{germaparl_download_lda} will download an
-  \code{rds}-file that will be stored in the data directory of the GermaParl corpus.
+  \code{rds}-file that will be stored in the data directory of the GermaParl
+  corpus.
 
-\code{germaparl_encode_lda_topics} will add a new s-attributes
-  \emph{topics} to GermaParl corpus with topicmodel for \code{k} topics. The
-  \code{n} topics for speeches will be written to the corpus. A requirement
-  for the function to work is that the s-attribute \code{speech} has been
-  generated beforehand using \code{germaparl_encode_speeches}.
-
-\code{germaparl_load_topicmodel} will load a topicmodel into memory.
+\code{germaparl_load_lda} will load a topicmodel into memory.
   The function will return a \code{LDA_Gibbs} topicmodel, if the topicmodel
   for \code{k} is present; \code{NULL} if the topicmodel has not yet been
   downloaded.
 }
-\seealso{
-The workflow to add an lda topic annotation of speeches to the
-  corpus is part of the examples section of the overview documentation of the
-  \link{GermaParl} package.
+\examples{
+# This example assumes that the directories used by the CWB do not yet exist, so
+# temporary directories are created.
+cwb_dirs <- cwbtools::create_cwb_directories(prefix = tempdir(), ask = FALSE)
+
+samplemode <- TRUE
+corpus_id <- "GERMAPARLSAMPLE" # for full corpus: corpus_id <- "GERMAPARL"
+
+dir.create(file.path(cwb_dirs[["corpus_dir"]], tolower(corpus_id)))
+
+# Download topic model
+germaparl_download_lda(
+  k = 30, # k = 250 recommended for full GERMAPARL corpus
+  data_dir = file.path(cwb_dirs[["corpus_dir"]], tolower(corpus_id)),
+  sample = samplemode
+)
+lda <- germaparl_load_lda(
+  k = 30L, registry_dir = cwb_dirs[["registry_dir"]],
+  sample = samplemode
+)
+lda_terms <- topicmodels::terms(lda, 10)
 }

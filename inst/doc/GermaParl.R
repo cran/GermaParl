@@ -24,59 +24,16 @@ knitr::kable(tab, format = "markdown")
 ## ----installing_GermaParl, eval = FALSE---------------------------------------
 #  install.packages("GermaParl")
 
+## -----------------------------------------------------------------------------
+library(GermaParl)
+
 ## ----load_germaparl, eval = FALSE---------------------------------------------
-#  library(GermaParl)
 #  germaparl_download_corpus()
 
-## ----check_installation, eval = TRUE------------------------------------------
-library(polmineR)
-use("GermaParl") # to activate the corpus in the data package
-corpus() # to see whether the GERMAPARL corpus is listed
-if ("GERMAPARL" %in% corpus()[["corpus"]]) size("GERMAPARL") # to learn about the size of the corpus
-
-## ----sAttributes, eval = TRUE-------------------------------------------------
-s_attributes("GERMAPARLMINI")
-p_attributes("GERMAPARLMINI")
-
-## ----sAttributes_year, eval = TRUE--------------------------------------------
-s_attributes("GERMAPARLMINI", "date")
-s_attributes("GERMAPARLMINI", "party")
-
-## ----kwic, eval = TRUE--------------------------------------------------------
-K <- kwic("GERMAPARLMINI", query = "Integration")
-if (interactive()){
-  K
-} else {
-  knitr::kable(as.data.frame(K), format = "markdown")
-}
-
-## ----count, eval = TRUE-------------------------------------------------------
-count("GERMAPARLMINI", query = "Integration")
-count("GERMAPARLMINI", query = c("Integration", "Flucht", "Abschiebung"))
-
-## ----dispersion, eval = TRUE--------------------------------------------------
-d <- dispersion("GERMAPARLMINI", query = "Integration", s_attribute = "date")
-d
-
-## ----dispersion_barplot, eval = TRUE------------------------------------------
-barplot(d[["count"]], names.arg = d[["date"]], las = 2)
-
-## ----cooc, eval = FALSE-------------------------------------------------------
-#  coocs <- cooccurrences("GERMAPARLMINI", query = "Wir")
-#  format(coocs)
-#  dotplot(C)
-
-## ----count_partition, eval = FALSE--------------------------------------------
-#  lp16 <- partition("GERMAPARL", lp = 16)
-#  count(lp16, query = c("Asyl", "Flucht", "Abschiebung"))
-#  dispersion(lp16, query = "Flüchtlinge", sAttribute = "year")
-
-## ----pipe, eval = FALSE-------------------------------------------------------
-#  library(magrittr)
-#  cooccurrences("GERMAPARLMINI", query = "Europa") %>%
-#    subset(!word %in% c(tm::stopwords("de"), ",", ".")) %>%
-#    subset(count_window >= 5) %>%
-#    dotplot()
+## ----check_installation, eval = FALSE-----------------------------------------
+#  germaparl_is_installed()
+#  germaparl_get_doi()
+#  germaparl_get_version()
 
 ## ---- eval = FALSE------------------------------------------------------------
 #  citation("GermaParl")
@@ -102,8 +59,7 @@ urls <- list(
   c("2005", "http://webarchiv.bundestag.de/archive/2005/1205/bic/plenarprotokolle/pp/2005/index.html"),
   c("2006", "http://webarchiv.bundestag.de/archive/2008/0912/bic/plenarprotokolle/pp/2006/index.html"),
   c("2007", "http://webarchiv.bundestag.de/archive/2008/0912/bic/plenarprotokolle/pp/2007/index.html"),
-  c("2008", "http://webarchiv.bundestag.de/archive/2008/0912/bic/plenarprotokolle/pp/2008/index.html"),
-  c("2009", "http://webarchiv.bundestag.de/archive/2008/0912/bic/plenarprotokolle/pp/2009/index.html")
+  c("2008", "http://webarchiv.bundestag.de/archive/2008/0912/bic/plenarprotokolle/pp/2008/index.html")
 )
 tab <- do.call(rbind, urls)
 colnames(tab) <- c("year", "URL")
