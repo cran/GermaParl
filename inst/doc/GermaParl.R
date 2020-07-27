@@ -42,7 +42,19 @@ library(GermaParl)
 knitr::kable(GermaParl::germaparl_by_lp, format = "markdown")
 
 ## ----stat_by_year, eval = TRUE, echo = FALSE, message = FALSE-----------------
-knitr::kable(GermaParl::germaparl_by_year, format = "markdown")
+summary_row <- t(data.frame(colSums(GermaParl::germaparl_by_year)))
+rownames(summary_row) <- NULL
+content_rows <- GermaParl::germaparl_by_year
+rownames(content_rows) <- NULL
+tab <- rbind(content_rows, summary_row)
+tab[["year"]] <- as.character(tab[["year"]])
+tab[nrow(tab), "year"] <- "TOTAL"
+tab[nrow(tab), "unknown_share"] <- round(
+  sum(GermaParl::germaparl_by_year[["unknown_total"]]) / sum(GermaParl::germaparl_by_year[["size"]]),
+  digits = 3
+)
+colnames(tab)[6:7] <- c("unknown (total)", "unknown (share)")
+knitr::kable(tab, format = "markdown")
 
 ## ----urls, echo = FALSE, message = FALSE--------------------------------------
 
